@@ -1,6 +1,6 @@
-import {Component, OnInit} from '@angular/core';
+import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
-import {map, Observable, startWith} from "rxjs";
+import {combineLatest, debounceTime, distinctUntilChanged, map, Observable, Subscription, tap} from "rxjs";
 import {Pokemon, PokemonService} from "./services/pokemon.service";
 
 @Component({
@@ -8,49 +8,98 @@ import {Pokemon, PokemonService} from "./services/pokemon.service";
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss']
 })
-export class FilterComponent implements OnInit{
+export class FilterComponent implements OnInit, OnDestroy {
 
-  disableSaving= false;
+  disableSaving = false;
   indeterminate = false;
+  savedAllSelected = false;
+  savedPokemon: any;
+  formSubscription = new Subscription();
   form$ = this.formBuilder.nonNullable.group({
     allSelected: new FormControl(false),
     pokemons: this.formBuilder.nonNullable.group({}),
   })
 
-  pokemons$ : Observable<Pokemon[]> = this.pokemonService.getPokemons().pipe(
-    map((pokemons: Pokemon[]) => {
-      const pokemonsControls = pokemons.reduce((acc: {[key: string]: FormControl}, pokemon: Pokemon) => {
-        acc[pokemon.id.toString()] = new FormControl(false);
+  filterSettings$ = this.pokemonService.getPokemonFilterSettings();
+  pokemonsHttp$: Observable<Pokemon[]> = this.pokemonService.getPokemons();
+
+
+  // the new initialisation
+  pokemons$: Observable<Pokemon[]> = combineLatest({
+    pokemonInfo: this.pokemonsHttp$,
+    filters: this.filterSettings$
+  }).pipe(
+    distinctUntilChanged(),
+    tap(({pokemonInfo, filters}) => {
+
+      const pokemonsControls = pokemonInfo.reduce((acc: { [key: string]: FormControl }, pokemon: Pokemon) => {
+        // Determine if the pokemon is selected based on the filter settings
+        const isSelected = filters.pokemon.some(filterPokemon => filterPokemon.id === pokemon.id);
+        acc[pokemon.id.toString()] = this.formBuilder.control(isSelected);
         return acc;
       }, {});
-      const pokemonsFormGroup = this.formBuilder.group(pokemonsControls);
-      this.form$.setControl('pokemons', pokemonsFormGroup);
-      return pokemons;
+
+      // Set the entire pokemons form group with the controls created based on the fetched pokemons
+      this.form$.setControl('pokemons', this.formBuilder.group(pokemonsControls));
+
+      // Set the 'allSelected' state based on the filter settings
+      this.form$.get('allSelected')?.setValue(filters.allSelected, {emitEvent: false});
+
+      // Update the indeterminate state
+      this.indeterminate = !filters.allSelected && filters.pokemon.length > 0;
     }),
-    startWith([])
-  );
+    map(({pokemonInfo}) => pokemonInfo)
+  )
+
 
   constructor(
     readonly formBuilder: FormBuilder,
     readonly pokemonService: PokemonService,
-  ) {}
+    readonly cdr: ChangeDetectorRef,
+  ) {
+  }
 
   ngOnInit() {
     this.listenToPokemonSelections();
 
-    this.form$.valueChanges.subscribe((changes) => {
-      console.log('any CHanges', changes)
-    })
+    this.form$.valueChanges
+      .pipe(
+        distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
+        debounceTime(15),
+        tap((changes) => {
+          console.log(changes)
 
-    this.form$.controls.pokemons.valueChanges.subscribe((pokemonControls) => {
-      console.log('pokemonControls chanes', pokemonControls)
-    })
+          if (JSON.stringify(changes.pokemons) !== JSON.stringify(this.savedPokemon)) {
+            if (!changes.pokemons) return
+            const isEveryPokemonSelected = Object.values(changes.pokemons).every(val => val === true)
+            const isSomePokemonSelected = Object.values(changes.pokemons).some(val => val === true)
+            if (isEveryPokemonSelected) {
+              this.form$.controls.allSelected.patchValue(isEveryPokemonSelected);
+            } else {
+              if (!isSomePokemonSelected) {
+                this.form$.controls.allSelected.patchValue(isSomePokemonSelected);
+              }
+            }
 
-    this.form$.controls.allSelected.valueChanges.subscribe(value => {
-      console.log('formallSelectedChanges', value)
+            this.indeterminate = isSomePokemonSelected && !isEveryPokemonSelected
+            this.disableSaving = !isSomePokemonSelected
+            this.savedPokemon = changes.pokemons
+            this.cdr.detectChanges()
+          }
 
-      //this.toggleAll(!!value);
-    });
+          if (changes.allSelected !== this.savedAllSelected) {
+            this.toggleAll();
+            this.savedAllSelected = changes.allSelected ? changes.allSelected : false
+            this.cdr.detectChanges()
+          }
+        })
+      )
+      .subscribe()
+
+  }
+
+  ngOnDestroy() {
+    if(this.formSubscription) this.formSubscription.unsubscribe()
   }
 
   listenToPokemonSelections() {
@@ -64,22 +113,24 @@ export class FilterComponent implements OnInit{
         const someSelected = Object.values(pokemonsGroup.controls).some(c => c.value);
 
 
-        this.form$.controls.allSelected.setValue(allSelected, { emitEvent: false });
+        this.form$.controls.allSelected.setValue(allSelected, {emitEvent: false});
         this.indeterminate = someSelected && !allSelected;
       });
     });
   }
 
-  toggleAll(isSelected: boolean) {
-    const pokemonsFormGroup = this.form$.get('pokemons') as FormGroup;
-    Object.keys(pokemonsFormGroup.controls).forEach(key => {
-      pokemonsFormGroup.controls[key].setValue(isSelected);
-    });
+  toggleAll() {
+    const pokemonsControls = this.form$.controls.pokemons;
+    const toggle = this.form$.controls.allSelected.value!;
+    const pokemonUpdates =  Object.keys(pokemonsControls.controls).reduce((acc, key) => ({
+      ...acc,
+      [key]: toggle
+    }), {});
 
-    this.indeterminate = !isSelected;
+    this.form$.controls.pokemons.patchValue(pokemonUpdates);
   }
 
-
-  savePokemon() {}
+  savePokemon() {
+  }
 
 }

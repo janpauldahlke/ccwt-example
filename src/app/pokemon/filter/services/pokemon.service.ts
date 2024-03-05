@@ -1,6 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import {forkJoin, map, Observable} from 'rxjs';
+import {forkJoin, map, Observable, of} from 'rxjs';
+
+export type PokemonFilter = {
+  allSelected : boolean,
+  pokemon : FlatPokemon[],
+}
+
+
+
+export type FlatPokemon =  Pick<Pokemon, 'name' | 'id'>;
 
 export type Pokemon = {
   name: string;
@@ -17,6 +26,24 @@ export class PokemonService {
 
   randomPokemonNumbers = [240, 146, 401, 870, 67]
   constructor(readonly http: HttpClient) {}
+
+  getPokemonFilterSettings() : Observable<PokemonFilter> {
+  // in the original example the names come from here
+    const couldBeHttpFilter: PokemonFilter = {
+      allSelected: false,
+      pokemon: [
+        {
+          name: 'foo',
+          id: 240
+        },
+        {
+          name: 'fara',
+          id: 146
+        }
+      ]
+    }
+    return of(couldBeHttpFilter)
+  }
 
   getPokemons(): Observable<Pokemon[]> {
     const ids = this.randomPokemonNumbers

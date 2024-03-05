@@ -25,3 +25,22 @@ State of the form:
 * timetravel to commit 893fe949 to see the it there
 * when dynamically adding controls to pokemon like seen here
 * **we can not subscribe to valuechanges via `this.form$.controls.pokemon.valueChanges.subscribe()` because it is tied to the inital formgroup instance. Updating pokemons with setControls swaps with a new instance and thus disconnects from the old subscription.** 
+
+
+#### the implementer solution
+
+* dynamically updates pokemon form controls to keep the UI in sync with the latest data
+* refreshes subscriptions on form changes to catch all updates in real time
+* uses a combo of distinctUntilChanged and JSON.stringify to filter out duplicate changes, keeping things efficient
+* manually triggers UI updates with cdr.detectChanges() to make sure the view reflects the most recent state, especially after changes that Angular might not pick up automatically
+* specifically manages the indeterminate state for the "select all" checkbox, reflecting partial selections correctly
+
+#### thoughts
+* often times the formControl, abstractControl nested, does not know about it's inner type. 
+* maybe we find a way like https://github.com/ngneat/reactive-forms or make better use of the formstyping. 
+* but this leaves us with the need to provide default values initally, but we can not do so, since we create the pokemon dynamically, based on their changing values, see the service and alter pokemon ids here. cringe
+
+
+#### discussion, can we find better ways
+* 
+* 2

@@ -1,12 +1,13 @@
 import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {combineLatest, debounceTime, distinctUntilChanged, map, Observable, Subscription, tap} from "rxjs";
-import {Pokemon, PokemonService} from "./services/pokemon.service";
+import {FlatPokemon, Pokemon, PokemonFilter, PokemonService} from "./services/pokemon.service";
+
 
 @Component({
   selector: 'app-filter',
   templateUrl: './filter.component.html',
-  styleUrls: ['./filter.component.scss']
+  styleUrls: ['./filter.component.scss'],
 })
 export class FilterComponent implements OnInit, OnDestroy {
 
@@ -16,13 +17,13 @@ export class FilterComponent implements OnInit, OnDestroy {
   savedPokemon: any;
   formSubscription = new Subscription();
   form$ = this.formBuilder.nonNullable.group({
-    allSelected: new FormControl(false),
+    allSelected: this.formBuilder.nonNullable.control(false),
     pokemons: this.formBuilder.nonNullable.group({}),
   })
+  pokemonInfo : Pokemon[] = [];
 
   filterSettings$ = this.pokemonService.getPokemonFilterSettings();
   pokemonsHttp$: Observable<Pokemon[]> = this.pokemonService.getPokemons();
-
 
   // the new initialisation
   pokemons$: Observable<Pokemon[]> = combineLatest({
@@ -31,7 +32,7 @@ export class FilterComponent implements OnInit, OnDestroy {
   }).pipe(
     distinctUntilChanged(),
     tap(({pokemonInfo, filters}) => {
-
+      this.pokemonInfo = pokemonInfo;
       const pokemonsControls = pokemonInfo.reduce((acc: { [key: string]: FormControl }, pokemon: Pokemon) => {
         // Determine if the pokemon is selected based on the filter settings
         const isSelected = filters.pokemon.some(filterPokemon => filterPokemon.id === pokemon.id);
@@ -128,7 +129,22 @@ export class FilterComponent implements OnInit, OnDestroy {
     this.form$.controls.pokemons.patchValue(pokemonUpdates);
   }
 
-  savePokemon() {
-  }
+    savePokemon() {
 
+      const formValues = this.form$.getRawValue()
+      const {allSelected, pokemons}: {allSelected: boolean, pokemons: {[key: string]: boolean}} = formValues;
+      if(Object.keys(pokemons).length < 1 || allSelected === null) return
+      const lookUpPokemonName = (id: string) => this.pokemonInfo.find(pokemon => pokemon.id.toString() === id)?.name
+      const pokemon= Object.keys(pokemons)
+        .filter((key) => pokemons[key!])
+        .map(id => {
+          return {id: parseInt(id), name: lookUpPokemonName(id)} as FlatPokemon;
+        });
+
+      const updatedFilter : PokemonFilter = {
+        allSelected,
+        pokemon,
+      }
+      this.pokemonService.savePokemonFilter(updatedFilter)
+  }
 }

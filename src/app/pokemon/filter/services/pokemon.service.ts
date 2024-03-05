@@ -24,8 +24,12 @@ export type Pokemon = {
 export class PokemonService {
   private baseUrl = 'https://pokeapi.co/api/v2/pokemon';
 
-  randomPokemonNumbers = [240, 146, 401, 870, 67]
+  randomPokemonNumbers = [240, 146, 401, 870, 67, 12, 13, 15]
   constructor(readonly http: HttpClient) {}
+
+  savePokemonFilter(filters: PokemonFilter) {
+    console.log('about to persist', filters);
+  }
 
   getPokemonFilterSettings() : Observable<PokemonFilter> {
   // in the original example the names come from here
@@ -39,6 +43,10 @@ export class PokemonService {
         {
           name: 'fara',
           id: 146
+        },
+        {
+          name: 'fooaa',
+          id: 12,
         }
       ]
     }

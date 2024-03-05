@@ -1,9 +1,12 @@
+main {
+  background-color: #ced3db;
+  min-height: 100vh;
+}
+
 .flex {
   display: flex;
   align-items: center;
   img {
-    max-width: 90px;
-    max-height: 90px;
     margin-right: 8px;
   }
 }

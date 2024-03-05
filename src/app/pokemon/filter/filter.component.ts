@@ -16,6 +16,8 @@ export class FilterComponent implements OnInit, OnDestroy {
   savedAllSelected = false;
   savedPokemon: any;
   formSubscription = new Subscription();
+  private nestedFormSubscriptions = new Subscription();
+
   form$ = this.formBuilder.nonNullable.group({
     allSelected: this.formBuilder.nonNullable.control(false),
     pokemons: this.formBuilder.nonNullable.group({}),
@@ -25,7 +27,6 @@ export class FilterComponent implements OnInit, OnDestroy {
   filterSettings$ = this.pokemonService.getPokemonFilterSettings();
   pokemonsHttp$: Observable<Pokemon[]> = this.pokemonService.getPokemons();
 
-  // the new initialisation
   pokemons$: Observable<Pokemon[]> = combineLatest({
     pokemonInfo: this.pokemonsHttp$,
     filters: this.filterSettings$
@@ -34,24 +35,16 @@ export class FilterComponent implements OnInit, OnDestroy {
     tap(({pokemonInfo, filters}) => {
       this.pokemonInfo = pokemonInfo;
       const pokemonsControls = pokemonInfo.reduce((acc: { [key: string]: FormControl }, pokemon: Pokemon) => {
-        // Determine if the pokemon is selected based on the filter settings
         const isSelected = filters.pokemon.some(filterPokemon => filterPokemon.id === pokemon.id);
         acc[pokemon.id.toString()] = this.formBuilder.control(isSelected);
         return acc;
       }, {});
-
-      // Set the entire pokemons form group with the controls created based on the fetched pokemons
       this.form$.setControl('pokemons', this.formBuilder.group(pokemonsControls));
-
-      // Set the 'allSelected' state based on the filter settings
       this.form$.get('allSelected')?.setValue(filters.allSelected, {emitEvent: false});
-
-      // Update the indeterminate state
       this.indeterminate = !filters.allSelected && filters.pokemon.length > 0;
     }),
     map(({pokemonInfo}) => pokemonInfo)
   )
-
 
   constructor(
     readonly formBuilder: FormBuilder,
@@ -99,6 +92,7 @@ export class FilterComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if(this.formSubscription) this.formSubscription.unsubscribe()
+    if(this.nestedFormSubscriptions) this.nestedFormSubscriptions.unsubscribe()
   }
 
   listenToPokemonSelections() {
@@ -106,15 +100,13 @@ export class FilterComponent implements OnInit, OnDestroy {
     Object.values(pokemonsGroup.controls).forEach((control) => {
       const formControl = control as FormControl;
 
-      formControl.valueChanges.subscribe((poke) => {
-        console.log('pokeMonSelectionChanges', poke)
+     const subscription= formControl.valueChanges.subscribe((poke) => {
         const allSelected = Object.values(pokemonsGroup.controls).every(c => c.value);
         const someSelected = Object.values(pokemonsGroup.controls).some(c => c.value);
-
-
         this.form$.controls.allSelected.setValue(allSelected, {emitEvent: false});
         this.indeterminate = someSelected && !allSelected;
       });
+      this.nestedFormSubscriptions.add(subscription);
     });
   }
 

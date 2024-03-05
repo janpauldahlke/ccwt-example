@@ -49,14 +49,15 @@ State of the form:
 #### discussion, can we find better ways
 
 * we know this from reading [telerik dev blog entry](https://www.telerik.com/blogs/testing-dynamic-forms-in-angular)
-* ```
-    As we’ve made changes to the component, we have to manually force the component to detect changes. Thus, the detectChanges method is triggered. This method ensures the template is updated in response to the changes made in the component file.
-    ```
 
-* we ask bigbrother perplexity about this
+> As we’ve made changes to the component, we have to manually force the component to detect changes. Thus, the detectChanges method is triggered. This method ensures the template is updated in response to the changes made in the component file.
+    
+
+* we ask big brother perplexity about this
 
 >Based on the official Angular documentation and resources, it is indeed true that when dynamically adding or removing form controls in an Angular FormGroup, Angular's change detection system may not automatically detect these structural changes to the form. This situation necessitates manual intervention to ensure the view is updated to reflect the current state of the form.
 The Angular guide on dynamic forms provides insights into creating forms dynamically based on data models but does not explicitly cover the change detection aspect in the context of dynamic structural changes
 [offical reactive forms dosc](https://angular.io/guide/dynamic-form)
-. 
+
+---
 > in summary as question. ** we might have found an edge case about change detection that is not very well documented?** 

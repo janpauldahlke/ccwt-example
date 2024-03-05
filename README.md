@@ -19,6 +19,11 @@ State of the form:
   * when all pokemon is selected, check the allSelected
   * when the user presses save, persist the actual selected pokemon in the PokemonFilter Endpoint (liek post or else)
 
+> by changing values for e.g
+>  * `randomPokemonNumbers = [240, 146, 401, 870, 67, 12, 13, 15]`
+>  * and in `getPokemonFilterSettings()` 
+>  * both in `src/app/pokemon/filter/services/pokemon.service.ts` one can understand the dynamic nature of this problem
+
 
 #### The problem
 

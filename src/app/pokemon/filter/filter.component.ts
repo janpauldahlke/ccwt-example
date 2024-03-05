@@ -67,8 +67,6 @@ export class FilterComponent implements OnInit, OnDestroy {
         distinctUntilChanged((prev, curr) => JSON.stringify(prev) === JSON.stringify(curr)),
         debounceTime(15),
         tap((changes) => {
-          console.log(changes)
-
           if (JSON.stringify(changes.pokemons) !== JSON.stringify(this.savedPokemon)) {
             if (!changes.pokemons) return
             const isEveryPokemonSelected = Object.values(changes.pokemons).every(val => val === true)

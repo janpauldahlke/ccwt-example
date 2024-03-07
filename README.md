@@ -3,6 +3,7 @@
 
 >run sandbox and tinker around :-P
 >[Stackblitz](https://stackblitz.com/~/github.com/janpauldahlke/ccwt-example)
+>[Slides for presentation](https://slides.com/paulqq/code-fcd644/)
 
 > This example is reproduced and simplified and is based on real customer AC's.
 

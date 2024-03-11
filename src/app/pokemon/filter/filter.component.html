@@ -1,63 +1,67 @@
-<div>
-  <h2>Pokemon Selector</h2>
-</div>
+<main>
 
-<div class="flex">
+  <div>
+    <h2>Pokemon Selector</h2>
+  </div>
 
-  <section *ngIf="(pokemons$ | async) as pokemons; else loading">
-    <form [formGroup]="form$">
-      <div class="check-all">
-        <mat-checkbox
-          data-test="select-all-checkbox"
-          [formControl]="form$.controls.allSelected"
-          [indeterminate]="indeterminate"
-          class="select-all">
-          Select All
-        </mat-checkbox>
-      </div>
+  <div class="flex">
 
-      <ng-container *ngIf="pokemons; else loading">
-        <div class="checkbox-group" [formGroup]="form$.controls.pokemons">
-          <div *ngFor="let pokemon of pokemons, index as i" class="flex">
-
-            <img [src]="pokemon.img" />
-            <mat-checkbox [formControlName]="pokemon.id" [attr.data-test]="'checkbox-room' + i">
-              {{pokemon.name }}
-            </mat-checkbox>
-          </div>
+    <section *ngIf="(pokemons$ | async) as pokemons; else loading">
+      <form [formGroup]="form$">
+        <div class="check-all">
+          <mat-checkbox
+            data-test="select-all-checkbox"
+            [formControl]="form$.controls.allSelected"
+            [indeterminate]="indeterminate"
+            class="select-all">
+            Select All
+          </mat-checkbox>
         </div>
 
-      </ng-container>
-    </form>
+        <ng-container *ngIf="pokemons; else loading">
+          <div class="checkbox-group" [formGroup]="form$.controls.pokemons">
+            <div *ngFor="let pokemon of pokemons, index as i" class="flex">
 
-    <section>
-      <button mat-raised-button data-test="rooms-cancel-button">Cancel</button>
-      <button mat-raised-button data-test="rooms-apply-button"
-              [disabled]="disableSaving"
-              (click)="savePokemon()">'Apply</button>
+              <img [src]="pokemon.img" />
+              <mat-checkbox [formControlName]="pokemon.id" [attr.data-test]="'checkbox-room' + i">
+                {{pokemon.name | capitalize }}
+              </mat-checkbox>
+            </div>
+          </div>
+
+        </ng-container>
+      </form>
+
+      <section>
+        <button mat-raised-button color="warn">Cancel</button>
+        <button mat-raised-button   color="primary"
+                [disabled]="disableSaving"
+                (click)="savePokemon()">Apply</button>
+      </section>
+
     </section>
 
-</section>
+    <!-- region -- Texts-->
+    <div *ngIf="false">
+      #### The Acceptance criteria <br >
 
-  <!-- region -- Texts-->
-  <div *ngIf="false">
-    #### The Acceptance criteria <br >
+      Prerequisites <br >
+      * there is a endpoint for fetching the involved pokemons. these can change name, id, and how many! <br >
+      * there is another endpoint for fetching the FilterSettings fo a user for pokemons <br >
+      State of the form: <br >
+      * the app loads initially, set checkboxes for the pokemons found in the filter those from the other endpoint <br >
+      * when the user toggles the allSelect. we select all or none pokemon and update the checkboxes in the dynamic form <br >
+      * when there is at least one, BUT not all pokemon selected by the user, update the allSelect by indeterminate state <br >
+      * when none pokemon is selected, remove the check on allSelected <br >
+      * when all pokemon is selected, check the allSelected <br >
+      * when the user presses save, persist the actual selected pokemon in the PokemonFilter Endpoint (liek post or else) <br >
+    </div>
+    <!-- endregion-->
 
-    Prerequisites <br >
-    * there is a endpoint for fetching the involved pokemons. these can change name, id, and how many! <br >
-    * there is another endpoint for fetching the FilterSettings fo a user for pokemons <br >
-    State of the form: <br >
-    * the app loads initially, set checkboxes for the pokemons found in the filter those from the other endpoint <br >
-    * when the user toggles the allSelect. we select all or none pokemon and update the checkboxes in the dynamic form <br >
-    * when there is at least one, BUT not all pokemon selected by the user, update the allSelect by indeterminate state <br >
-    * when none pokemon is selected, remove the check on allSelected <br >
-    * when all pokemon is selected, check the allSelected <br >
-    * when the user presses save, persist the actual selected pokemon in the PokemonFilter Endpoint (liek post or else) <br >
   </div>
-  <!-- endregion-->
 
-</div>
+  <ng-template #loading>
+    <h5>Loading....</h5>
+  </ng-template>
 
-<ng-template #loading>
-  <h5>Loading....</h5>
-</ng-template>
+</main>

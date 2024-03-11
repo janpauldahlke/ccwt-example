@@ -16,8 +16,6 @@ import {NgOptimizedImage} from "@angular/common";
 @NgModule({
   declarations: [
     AppComponent,
-    FilterComponent,
-    CapitalizePipe,
   ],
   imports: [
     HttpClientModule,
@@ -25,13 +23,10 @@ import {NgOptimizedImage} from "@angular/common";
     AppRoutingModule,
     BrowserAnimationsModule,
     MatCheckboxModule,
-    ReactiveFormsModule,
     MatButtonModule,
     MatInputModule,
-    NgOptimizedImage
-  ],
-  exports: [
-    CapitalizePipe
+    NgOptimizedImage,
+    FilterComponent,
   ],
   providers: [],
   bootstrap: [AppComponent]

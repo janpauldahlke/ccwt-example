@@ -1,13 +1,26 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
+import {FormBuilder, FormControl, FormGroup, ReactiveFormsModule} from "@angular/forms";
 import {combineLatest, debounceTime, distinctUntilChanged, map, Observable, Subscription, tap} from "rxjs";
 import {FlatPokemon, Pokemon, PokemonFilter, PokemonService} from "./services/pokemon.service";
+import {CapitalizePipe} from "./pipes/capitalize.pipe";
+import {MatCheckboxModule} from "@angular/material/checkbox";
+import {CommonModule} from "@angular/common";
+import {MatButtonModule} from "@angular/material/button";
 
 
 @Component({
   selector: 'app-filter',
   templateUrl: './filter.component.html',
   styleUrls: ['./filter.component.scss'],
+  standalone: true,
+  imports: [
+    CommonModule,
+    CapitalizePipe,
+    ReactiveFormsModule,
+    MatCheckboxModule,
+    MatButtonModule,
+    CapitalizePipe
+  ]
 })
 export class FilterComponent implements OnInit, OnDestroy {
 

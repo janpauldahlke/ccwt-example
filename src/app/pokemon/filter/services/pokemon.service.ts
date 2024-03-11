@@ -24,7 +24,7 @@ export type Pokemon = {
 export class PokemonService {
   private baseUrl = 'https://pokeapi.co/api/v2/pokemon';
 
-  randomPokemonNumbers = [240, 146, 401, 870, 67, 12, 13, 15]
+  randomPokemonNumbers = [240, 146, 401, /* 870, 67, 12, 13, 15*/]
   constructor(readonly http: HttpClient) {}
 
   savePokemonFilter(filters: PokemonFilter) {

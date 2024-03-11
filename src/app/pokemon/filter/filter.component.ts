@@ -1,4 +1,4 @@
-import {ChangeDetectorRef, Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnDestroy, OnInit} from '@angular/core';
 import {FormBuilder, FormControl, FormGroup} from "@angular/forms";
 import {combineLatest, debounceTime, distinctUntilChanged, map, Observable, Subscription, tap} from "rxjs";
 import {FlatPokemon, Pokemon, PokemonFilter, PokemonService} from "./services/pokemon.service";
@@ -49,7 +49,6 @@ export class FilterComponent implements OnInit, OnDestroy {
   constructor(
     readonly formBuilder: FormBuilder,
     readonly pokemonService: PokemonService,
-    readonly cdr: ChangeDetectorRef,
   ) {
   }
 
@@ -75,14 +74,14 @@ export class FilterComponent implements OnInit, OnDestroy {
 
             this.indeterminate = isSomePokemonSelected && !isEveryPokemonSelected
             this.disableSaving = !isSomePokemonSelected
-            this.savedPokemon = changes.pokemons
-            this.cdr.detectChanges()
+            this.savedPokemon = changes.pokemons // cheap memoize with an any classMember!!
+
           }
 
           if (changes.allSelected !== this.savedAllSelected) {
             this.toggleAll();
             this.savedAllSelected = changes.allSelected ? changes.allSelected : false
-            this.cdr.detectChanges()
+
           }
         })
       )
